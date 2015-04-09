@@ -6,19 +6,8 @@ DROP PROCEDURE IF EXISTS generate_series_base;
 DELIMITER $$
 CREATE PROCEDURE generate_series_base (IN n_first BIGINT, IN n_last BIGINT)
 BEGIN
-    -- Create tmp table
-    DROP TEMPORARY TABLE IF EXISTS series_tmp;
-    CREATE TEMPORARY TABLE series_tmp (
-        series bigint
-    ) engine = memory;
-    
-    WHILE n_first <= n_last DO
-        -- Insert in tmp table
-        INSERT INTO series_tmp (series) VALUES (n_first);
-
-        -- Increment value by one
-        SET n_first = n_first + 1; 
-    END WHILE;
+    -- Call generate_series_n_base stored procedure with "1" as "n_increment".
+    CALL generate_series_n_base(n_first, n_last, 1);
 END $$
 DELIMITER ;
 
