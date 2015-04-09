@@ -1,6 +1,6 @@
 # mysql_generate_series: generate_series for MySQL
 
-mysql_generate_series is a MySQL replica of PostgreSQL's [Website](http://www.postgresql.org/docs/9.4/static/functions-srf.html) functions.
+mysql_generate_series is a MySQL replica of PostgreSQL's [generate_series](http://www.postgresql.org/docs/9.4/static/functions-srf.html) functions.
 
 It offers 5 methods:
 * generate_series(first, last): return a series from "first" to "last" with an increment of 1
@@ -189,7 +189,8 @@ mysql> CALL generate_series_date_day('2015-09-03 00:00:00', '2015-09-05 08:00:00
 
 ### Inserting in a table from a series
 
-MySQL does not allow to insert in tables directly from a stored procedure.
+MySQL does not allow inserting in tables directly from a stored procedure.
+
 mysql_generate_series uses a temporary table called "series_tmp" for every procedure which you can use to insert a series in a table, for example:
 
 ```sql
