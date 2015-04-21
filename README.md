@@ -5,9 +5,9 @@ mysql_generate_series is a MySQL replica of PostgreSQL's [generate_series](http:
 It offers 5 methods:
 * generate_series(first, last): return a series from "first" to "last" with an increment of 1
 * generate_series_n(first, last, n): return a series from "first" to "last" with an increment of "n"
-* generate_series_date_minute(fisrt, last, n): return a series of datetime with an increment of "n" minutes
-* generate_series_date_hour(fisrt, last, n): return a series of datetime with an increment of "n" hours
-* generate_series_date_day(fisrt, last, n): return a series of datetime with an increment of "n" days
+* generate_series_date_minute(first, last, n): return a series of datetime with an increment of "n" minutes
+* generate_series_date_hour(first, last, n): return a series of datetime with an increment of "n" hours
+* generate_series_date_day(first, last, n): return a series of datetime with an increment of "n" days
 
 All methods have an equivalent ending with "_no_output". For example, for "generate_series(first, last)" it will be "generate_series_no_output(first, last)". When used, this sub-method does not generate any output and the output is stored in a temporary table "series_tmp".
 
@@ -244,7 +244,7 @@ mysql> SELECT * FROM test;
 
 As for inserts, MySQL does not allow using a stored procedure directly in a SELECT query.
 
-We can again use mysql_generate_series's temporary table "series_tmp" to use the series in a SELECT.
+We can again use mysql_generate_series's temporary table "series_tmp" to use the series with a JOIN in a SELECT query
 
 This example demonstrates how to display all hours from a date and their eventual associated row in another table:
 ```sql
