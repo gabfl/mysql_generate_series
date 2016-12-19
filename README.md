@@ -15,7 +15,6 @@ All methods have an equivalent ending with "_no_output". For example, for "gener
 
 * Install all methods from [sql/generate_series.sql](sql/generate_series.sql)
 * Try it yourself with the examples below
-* You can also look at the [PHP examples](php_examples/)
 
 ### Examples
 
