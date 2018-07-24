@@ -1,9 +1,6 @@
-USE test;
-
--- 3 character varying params
-
-DROP PROCEDURE IF EXISTS generate_series;
 DELIMITER $$
+
+DROP PROCEDURE IF EXISTS generate_series $$
 CREATE PROCEDURE generate_series(_start VARCHAR(20), _stop VARCHAR(20), _step VARCHAR(40))
 BEGIN
     -- establish range type being produced 
