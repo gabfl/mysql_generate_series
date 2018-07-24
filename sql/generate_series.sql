@@ -1,220 +1,91 @@
--- 
--- Base stored procedures
--- 
+USE test;
 
-DROP PROCEDURE IF EXISTS generate_series_base;
-DELIMITER $$
-CREATE PROCEDURE generate_series_base (IN n_first BIGINT, IN n_last BIGINT)
-BEGIN
-    -- Call generate_series_n_base stored procedure with "1" as "n_increment".
-    CALL generate_series_n_base(n_first, n_last, 1);
-END $$
-DELIMITER ;
-
-DROP PROCEDURE IF EXISTS generate_series_n_base;
-DELIMITER $$
-CREATE PROCEDURE generate_series_n_base (IN n_first BIGINT, IN n_last BIGINT, IN n_increment BIGINT)
-BEGIN
-    -- Create tmp table
-    DROP TEMPORARY TABLE IF EXISTS series_tmp;
-    CREATE TEMPORARY TABLE series_tmp (
-        series bigint
-    ) engine = memory;
-    
-    WHILE n_first <= n_last DO
-        -- Insert in tmp table
-        INSERT INTO series_tmp (series) VALUES (n_first);
-
-        -- Increment value by one
-        SET n_first = n_first + n_increment; 
-    END WHILE;
-END $$
-DELIMITER ;
-
-DROP PROCEDURE IF EXISTS generate_series_date_minute_base;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_minute_base (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Create tmp table
-    DROP TEMPORARY TABLE IF EXISTS series_tmp;
-    CREATE TEMPORARY TABLE series_tmp (
-        series DATETIME
-    ) engine = memory;
-    
-    WHILE n_first  <= n_last DO
-        -- Insert in tmp table
-        INSERT INTO series_tmp (series) VALUES (n_first);
-
-        -- Increment value by one
-        SELECT DATE_ADD(n_first, INTERVAL +n_increment minute) INTO n_first;
-    END WHILE;
-END $$
-DELIMITER ;
-
-DROP PROCEDURE IF EXISTS generate_series_date_hour_base;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_hour_base (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Create tmp table
-    DROP TEMPORARY TABLE IF EXISTS series_tmp;
-    CREATE TEMPORARY TABLE series_tmp (
-        series DATETIME
-    ) engine = memory;
-    
-    WHILE n_first  <= n_last DO
-        -- Insert in tmp table
-        INSERT INTO series_tmp (series) VALUES (n_first);
-
-        -- Increment value by one
-        SELECT DATE_ADD(n_first, INTERVAL +n_increment hour) INTO n_first;
-    END WHILE;
-END $$
-DELIMITER ;
-
-DROP PROCEDURE IF EXISTS generate_series_date_day_base;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_day_base (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Create tmp table
-    DROP TEMPORARY TABLE IF EXISTS series_tmp;
-    CREATE TEMPORARY TABLE series_tmp (
-        series DATETIME
-    ) engine = memory;
-    
-    WHILE n_first  <= n_last DO
-        -- Insert in tmp table
-        INSERT INTO series_tmp (series) VALUES (n_first);
-
-        -- Increment value by one
-        SELECT DATE_ADD(n_first, INTERVAL +n_increment day) INTO n_first;
-    END WHILE;
-END $$
-DELIMITER ;
-
--- 
--- Stored procedure with no output
--- 
-
-DROP PROCEDURE IF EXISTS generate_series_no_output;
-DELIMITER $$
-CREATE PROCEDURE generate_series_no_output (IN n_first BIGINT, IN n_last BIGINT)
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_base(n_first, n_last);
-END $$
-DELIMITER ;
--- CALL generate_series_no_output(10, 20);
--- SELECT * FROM series_tmp;
-
-DROP PROCEDURE IF EXISTS generate_series_n_no_output;
-DELIMITER $$
-CREATE PROCEDURE generate_series_n_no_output (IN n_first BIGINT, IN n_last BIGINT, IN n_increment BIGINT)
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_n_base(n_first, n_last, n_increment);
-END $$
-DELIMITER ;
--- CALL generate_series_n_no_output(10, 20, 2);
--- SELECT * FROM series_tmp;
-
-DROP PROCEDURE IF EXISTS generate_series_date_minute_no_output;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_minute_no_output (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_minute_base(n_first, n_last, n_increment);
-END $$
-DELIMITER ;
--- CALL generate_series_date_minute_no_output('2014-01-01 00:00:00', '2014-01-01 00:20:00', '1');
--- SELECT * FROM series_tmp;
-
-DROP PROCEDURE IF EXISTS generate_series_date_hour_no_output;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_hour_no_output (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_hour_base(n_first, n_last, n_increment);
-END $$
-DELIMITER ;
--- CALL generate_series_date_hour_no_output('2014-01-01', '2014-01-02', '1');
--- SELECT * FROM series_tmp;
-
-DROP PROCEDURE IF EXISTS generate_series_date_day_no_output;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_day_no_output (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_day_base(n_first, n_last, n_increment);
-END $$
-DELIMITER ;
--- CALL generate_series_date_day_no_output('2014-01-01', '2014-02-01', '1');
--- SELECT * FROM series_tmp;
-
--- 
--- Stored procedure with regular output
--- 
+-- 3 character varying params
 
 DROP PROCEDURE IF EXISTS generate_series;
 DELIMITER $$
-CREATE PROCEDURE generate_series (IN n_first BIGINT, IN n_last BIGINT)
+CREATE PROCEDURE generate_series(_start VARCHAR(20), _stop VARCHAR(20), _step VARCHAR(40))
 BEGIN
-    -- Call base stored procedure
-    CALL generate_series_base(n_first, n_last);
-    
-    -- Output
-    SELECT * FROM series_tmp;
-END $$
-DELIMITER ;
--- CALL generate_series(10, 20);
+    -- establish range type being produced 
+    -- establish step increment
+    -- call appropriate generation function
 
-DROP PROCEDURE IF EXISTS generate_series_n;
-DELIMITER $$
-CREATE PROCEDURE generate_series_n (IN n_first BIGINT, IN n_last BIGINT, IN n_increment BIGINT)
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_n_base(n_first, n_last, n_increment);
-    
-    -- Output
-    SELECT * FROM series_tmp;
-END $$
-DELIMITER ;
--- CALL generate_series_n(10, 20, 2);
+  DECLARE _typecheck VARCHAR(8);
+  DECLARE _interval  VARCHAR(20);
+  -- we don't know the type of these vars till runtime
+  SET @start = @stop = @step = NULL;
+  DROP TEMPORARY TABLE IF EXISTS series_tmp;
 
-DROP PROCEDURE IF EXISTS generate_series_date_minute;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_minute (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_minute_base(n_first, n_last, n_increment);
-    
-    -- Output
-    SELECT * FROM series_tmp;
-END $$
-DELIMITER ;
--- CALL generate_series_date_minute('2014-01-01 00:00:00', '2014-01-01 00:20:00', '1');
+  -- All parameters are required
+  IF LENGTH(CAST(_start AS UNSIGNED) + 0) = LENGTH(_start) THEN
+    SET _typecheck = 'INTEGER';
+    SET @start = CAST(_start AS UNSIGNED);
+    SET @stop  = CAST(_stop AS UNSIGNED);
+    SET @step  = CAST(_step AS UNSIGNED);
+  ELSE
+    SET _typecheck = 'DATETIME';
 
-DROP PROCEDURE IF EXISTS generate_series_date_hour;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_hour (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_hour_base(n_first, n_last, n_increment);
-    
-    -- Output
-    SELECT * FROM series_tmp;
-END $$
-DELIMITER ;
--- CALL generate_series_date_hour('2014-01-01', '2014-01-02', '1');
+    IF LENGTH(_start) = 10 THEN
+      SET @start = CAST(_start AS DATE);
+      SET @stop  = CAST(_stop AS DATE);
+    ELSE
+      SET @start = CAST(_start AS DATETIME);
+      SET @stop  = CAST(_stop AS DATETIME);
+    END IF;
 
-DROP PROCEDURE IF EXISTS generate_series_date_day;
-DELIMITER $$
-CREATE PROCEDURE generate_series_date_day (IN n_first DATETIME, IN n_last DATETIME, IN n_increment CHAR(40))
-BEGIN
-    -- Call base stored procedure
-    CALL generate_series_date_day_base(n_first, n_last, n_increment);
-    
-    -- Output
-    SELECT * FROM series_tmp;
+    IF _step REGEXP 'INTERVAL [0-9]+ (SECOND|MINUTE|HOUR|DAY|WEEK|MONTH|YEAR)' = 1 THEN
+       SET _interval = SUBSTRING_INDEX(_step, ' ', -1); 
+       SET @step = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(_step, ' ', 2), ' ', -1) AS UNSIGNED);
+     ELSE
+       SIGNAL SQLSTATE '45000'
+       SET MESSAGE_TEXT = '\'step\' parameter should be in the form INTERVAL n SECOND|MINUTE|HOUR|DAY|WEEK|MONTH|YEAR';
+    END IF;
+  END IF;
+
+  IF _typecheck = 'INTEGER' THEN
+    CREATE TEMPORARY TABLE series_tmp (
+      series BIGINT PRIMARY KEY
+    ) ENGINE = MEMORY;
+
+    WHILE @start <= @stop DO
+      -- Insert in tmp table
+      INSERT INTO series_tmp (series) VALUES (@start);
+      -- Increment value by step
+      SET @start = @start + @step;
+    END WHILE;
+  ELSE
+    IF LENGTH(@start) = 10 THEN
+      CREATE TEMPORARY TABLE series_tmp(
+        series DATE PRIMARY KEY
+      ) ENGINE = MEMORY;
+    ELSE
+      CREATE TEMPORARY TABLE series_tmp(
+        series DATETIME PRIMARY KEY
+      ) ENGINE = MEMORY;
+    END IF;
+
+    WHILE @start <= @stop DO
+      INSERT INTO series_tmp (series) VALUES (@start);
+
+      CASE UPPER(_interval)
+        WHEN 'SECOND' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step SECOND);
+        WHEN 'MINUTE' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step MINUTE);
+        WHEN 'HOUR' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step HOUR);
+        WHEN 'DAY' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step DAY);
+        WHEN 'WEEK' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step WEEK);
+        WHEN 'MONTH' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step MONTH);
+        WHEN 'YEAR' THEN
+          SET @start = DATE_ADD(@start, INTERVAL @step YEAR);
+        END CASE;
+     END WHILE;
+  END IF;
+
 END $$
+
 DELIMITER ;
--- CALL generate_series_date_day('2014-01-01', '2014-02-01', '1');
