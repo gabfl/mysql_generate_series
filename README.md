@@ -92,15 +92,15 @@ mysql> SELECT * FROM `series_tmp`;
 ```
 
 
-### DATETIME Range
+### DATETIME Series
 For datetime ranges the "start" and "stop" parameters are datetimes and "step" represents the INTERVAL.
 
 e.g.
 
-* CALL generate_series('2018-01-01 00:00:00','2018-01-01 23:59:59','INTERVAL 1 SECOND');
+* CALL generate_series('2018-01-01 00:00:00', '2018-01-01 23:59:59', 'INTERVAL 1 SECOND');
 
 ```sql
-mysql> CALL generate_series('2018-01-01 00:00:00','2018-01-01 23:59:00','INTERVAL 1 MINUTE');
+mysql> CALL generate_series('2018-01-01 00:00:00', '2018-01-01 23:59:00', 'INTERVAL 1 MINUTE');
 Query OK, 0 rows affected (0.07 sec)
 
 mysql> describe series_tmp;
@@ -132,6 +132,18 @@ mysql> SELECT * FROM `series_tmp`;
 +---------------------+
 1440 rows in set (0.00 sec)
 ```
+
+### INTERVALS
+The following INTERVAL types are supported:
+
+* SECOND
+* MINUTE
+* HOUR
+* DAY
+* WEEK
+* MONTH
+* YEAR
+
 
 ### Installation
 
@@ -181,7 +193,7 @@ mysql> SELECT * FROM test;
 
 As for inserts, MySQL does not allow using a stored procedure directly in a SELECT query.
 
-We can again use mysql_generate_series's temporary table "series_tmp" to use the series with a JOIN in a SELECT query
+We can again use mysql_generate_series's temporary table `series_tmp` to use the series with a JOIN in a SELECT query
 
 This example demonstrates how to display all hours from a date and their eventual associated row in another table:
 
@@ -248,7 +260,7 @@ mysql> SELECT series_tmp.series, test2.a, test2.b
 
 ### Tips and tricks
 
- * The temporary table used to store results `series_tmp` is dropped and recreated on each call to gererate_series(). As a temporary table, it will only be available within the current session and to the current user. It will also automatically dropped when the connection is closed.
+ * The temporary table used to store results `series_tmp` is dropped and recreated on each call to generate_series(). As a temporary table, `series_tmp` will only be available within the current session and to the current user. It will also automatically dropped when the connection is closed.
 
 ### Authors
 
