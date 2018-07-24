@@ -1,27 +1,40 @@
 # mysql_generate_series: generate_series for MySQL
 
-mysql_generate_series is a MySQL replica of PostgreSQL's [generate_series](http://www.postgresql.org/docs/9.4/static/functions-srf.html) functions.
+mysql_generate_series is a MySQL version of PostgreSQL's [generate_series](http://www.postgresql.org/docs/9.4/static/functions-srf.html) functions.
 
-It offers 5 methods:
-* generate_series(first, last): return a series from "first" to "last" with an increment of 1
-* generate_series_n(first, last, n): return a series from "first" to "last" with an increment of "n"
-* generate_series_date_minute(first, last, n): return a series of datetime with an increment of "n" minutes
-* generate_series_date_hour(first, last, n): return a series of datetime with an increment of "n" hours
-* generate_series_date_day(first, last, n): return a series of datetime with an increment of "n" days
+This version is (heavily) adapted from the original by Gabriel Bordeaux and seeks to simplify the method call and make the MySQL version parameters follow the PostgreSQL version insofar as that is possible. 
 
-All methods have an equivalent ending with "_no_output". For example, for "generate_series(first, last)" it will be "generate_series_no_output(first, last)". When used, this sub-method does not generate any output and the output is stored in a temporary table "series_tmp".
+It offers a single method taking 3 parameters:
+* generate_series(start, stop, step): and delivers a series from "start" to "stop" incrementing by "step".
 
-### Installation
+Calling the method generates no output but instead creates a temporary table called `series_tmp` in the current database which can be used in joins and sub-queries in the current session.
+ 
+All parameters are INTEGER or strings which are representative of INTEGER, DATE, DATETIME and INTERVAL depending on the type of series being generated
 
-* Install all methods from [sql/generate_series.sql](sql/generate_series.sql)
-* Try it yourself with the examples below
+### INTEGER Series
+For integer ranges the three parameters are all INTEGER or string representations of numbers ("strumbers" if you prefer)
 
-### Examples
+either
 
-#### generate_series(first, last) examples
+* CALL generate_series(1, 20, 1);
+or
+* CALL generate_series('1', '20', '1');
+
+Will create and populate `series_tmp` with INTEGER values from 1 to 20, incrementing by 1.
 
 ```sql
-mysql> CALL generate_series(1, 10);
+mysql> CALL generate_series( 1 , 10 , 1);
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> describe series_tmp;
++--------+------------+------+-----+---------+-------+
+| Field  | Type       | Null | Key | Default | Extra |
++--------+------------+------+-----+---------+-------+
+| series | bigint(20) | NO   | PRI | NULL    |       |
++--------+------------+------+-----+---------+-------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM `series_tmp`;
 +--------+
 | series |
 +--------+
@@ -30,193 +43,118 @@ mysql> CALL generate_series(1, 10);
 |      3 |
 |      4 |
 |      5 |
-+--------+
-10 rows in set (0.00 sec)
-
-mysql> CALL generate_series(1000, 1004);
-+--------+
-| series |
-+--------+
-|   1000 |
-|   1001 |
-|   1002 |
-|   1003 |
-|   1004 |
-+--------+
-5 rows in set (0.00 sec)
-```
-
-#### generate_series_n(first, last, n) examples
-
-```sql
-mysql> CALL generate_series_n(0, 10, 2);
-+--------+
-| series |
-+--------+
-|      0 |
-|      2 |
-|      4 |
 |      6 |
+|      7 |
 |      8 |
+|      9 |
 |     10 |
 +--------+
-6 rows in set (0.00 sec)
+10 rows in set (0.00 sec)
 ```
 
-#### generate_series_date_minute(first, last, n) examples
+### DATE Series
+For date ranges the "start" and "stop" parameters are string representations of dates and "step" represents the INTERVAL
+
+e.g.
+
+* CALL generate_series('2018-01-01','2018-12-31','INTERVAL 1 DAY');
 
 ```sql
-mysql> CALL generate_series_date_minute('2015-09-03 00:00:00', '2015-09-03 00:20:00', 1);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-03 00:01:00 |
-| 2015-09-03 00:02:00 |
-| 2015-09-03 00:03:00 |
-| 2015-09-03 00:04:00 |
-| 2015-09-03 00:05:00 |
-| 2015-09-03 00:06:00 |
-| 2015-09-03 00:07:00 |
-| 2015-09-03 00:08:00 |
-| 2015-09-03 00:09:00 |
-| 2015-09-03 00:10:00 |
-| 2015-09-03 00:11:00 |
-| 2015-09-03 00:12:00 |
-| 2015-09-03 00:13:00 |
-| 2015-09-03 00:14:00 |
-| 2015-09-03 00:15:00 |
-| 2015-09-03 00:16:00 |
-| 2015-09-03 00:17:00 |
-| 2015-09-03 00:18:00 |
-| 2015-09-03 00:19:00 |
-| 2015-09-03 00:20:00 |
-+---------------------+
-21 rows in set (0.00 sec)
+mysql> CALL generate_series('2018-01-01','2018-12-31','INTERVAL 1 MONTH');
+Query OK, 0 rows affected (0.08 sec)
 
-mysql> CALL generate_series_date_minute('2015-09-03 00:00:00', '2015-09-03 00:20:00', 2);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-03 00:02:00 |
-| 2015-09-03 00:04:00 |
-| 2015-09-03 00:06:00 |
-| 2015-09-03 00:08:00 |
-| 2015-09-03 00:10:00 |
-| 2015-09-03 00:12:00 |
-| 2015-09-03 00:14:00 |
-| 2015-09-03 00:16:00 |
-| 2015-09-03 00:18:00 |
-| 2015-09-03 00:20:00 |
-+---------------------+
-11 rows in set (0.01 sec)
+mysql> describe series_tmp;
++--------+------+------+-----+---------+-------+
+| Field  | Type | Null | Key | Default | Extra |
++--------+------+------+-----+---------+-------+
+| series | date | NO   | PRI | NULL    |       |
++--------+------+------+-----+---------+-------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM `series_tmp`;
++------------+
+| series     |
++------------+
+| 2018-01-01 |
+| 2018-02-01 |
+| 2018-03-01 |
+| 2018-04-01 |
+| 2018-05-01 |
+| 2018-06-01 |
+| 2018-07-01 |
+| 2018-08-01 |
+| 2018-09-01 |
+| 2018-10-01 |
+| 2018-11-01 |
+| 2018-12-01 |
++------------+
+12 rows in set (0.00 sec)
 ```
 
-#### generate_series_date_hour(first, last, n) examples
+
+### DATETIME Range
+For datetime ranges the "start" and "stop" parameters are datetimes and "step" represents the INTERVAL.
+
+e.g.
+
+* CALL generate_series('2018-01-01 00:00:00','2018-01-01 23:59:59','INTERVAL 1 SECOND');
 
 ```sql
-mysql> CALL generate_series_date_hour('2015-09-03', '2015-09-04', 1);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-03 01:00:00 |
-| 2015-09-03 02:00:00 |
-| 2015-09-03 03:00:00 |
-| 2015-09-03 04:00:00 |
-| 2015-09-03 05:00:00 |
-| 2015-09-03 06:00:00 |
-| 2015-09-03 07:00:00 |
-| 2015-09-03 08:00:00 |
-| 2015-09-03 09:00:00 |
-| 2015-09-03 10:00:00 |
-| 2015-09-03 11:00:00 |
-| 2015-09-03 12:00:00 |
-| 2015-09-03 13:00:00 |
-| 2015-09-03 14:00:00 |
-| 2015-09-03 15:00:00 |
-| 2015-09-03 16:00:00 |
-| 2015-09-03 17:00:00 |
-| 2015-09-03 18:00:00 |
-| 2015-09-03 19:00:00 |
-| 2015-09-03 20:00:00 |
-| 2015-09-03 21:00:00 |
-| 2015-09-03 22:00:00 |
-| 2015-09-03 23:00:00 |
-| 2015-09-04 00:00:00 |
-+---------------------+
-25 rows in set (0.00 sec)
+mysql> CALL generate_series('2018-01-01 00:00:00','2018-01-01 23:59:00','INTERVAL 1 MINUTE');
+Query OK, 0 rows affected (0.07 sec)
 
-mysql> CALL generate_series_date_hour('2015-09-03 00:00:00', '2015-09-03 08:00:00', 1);
+mysql> describe series_tmp;
++--------+----------+------+-----+---------+-------+
+| Field  | Type     | Null | Key | Default | Extra |
++--------+----------+------+-----+---------+-------+
+| series | datetime | NO   | PRI | NULL    |       |
++--------+----------+------+-----+---------+-------+
+1 row in set (0.01 sec)
+
+mysql> SELECT * FROM `series_tmp`;
 +---------------------+
 | series              |
 +---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-03 01:00:00 |
-| 2015-09-03 02:00:00 |
-| 2015-09-03 03:00:00 |
-| 2015-09-03 04:00:00 |
-| 2015-09-03 05:00:00 |
-| 2015-09-03 06:00:00 |
-| 2015-09-03 07:00:00 |
-| 2015-09-03 08:00:00 |
+| 2018-01-01 00:00:00 |
+| 2018-01-01 00:01:00 |
+| 2018-01-01 00:02:00 |
+| 2018-01-01 00:03:00 |
+| 2018-01-01 00:04:00 |
+| 2018-01-01 00:05:00 |
+| 2018-01-01 00:06:00 |
+| 2018-01-01 00:07:00 |
+| 2018-01-01 00:08:00 |
+...
+| 2018-01-01 23:56:00 |
+| 2018-01-01 23:57:00 |
+| 2018-01-01 23:58:00 |
+| 2018-01-01 23:59:00 |
 +---------------------+
-9 rows in set (0.00 sec)
+1440 rows in set (0.00 sec)
 ```
 
-#### generate_series_date_day(first, last, n) examples
+### Installation
 
-```sql
-mysql> CALL generate_series_date_day('2015-09-03', '2015-09-05', 1);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-04 00:00:00 |
-| 2015-09-05 00:00:00 |
-+---------------------+
-3 rows in set (0.00 sec)
+* Install the methods from [sql/generate_series.sql](sql/generate_series.sql)
 
-mysql> CALL generate_series_date_day('2015-09-03 00:00:00', '2015-09-05 08:00:00', 1);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-04 00:00:00 |
-| 2015-09-05 00:00:00 |
-+---------------------+
-3 rows in set (0.00 sec)
-```
 
 ### Inserting in a table from a series
 
-MySQL does not allow inserting in tables directly from a stored procedure.
-
-mysql_generate_series uses a temporary table called "series_tmp" for every procedure which you can use to insert a series in a table.
+MySQL does not support functions returning table so the procedure must be run before the data can be used from `series_tmp`.
 
 The following example shows how to insert multiple rows in MySQL tables easily:
+
 ```sql
 -- Create a test table
 mysql> CREATE TABLE test (a int, b text);
 Query OK, 0 rows affected (0.01 sec)
 
 -- Generate a series from 1 to 10
-mysql> CALL generate_series(1, 10);
-+--------+
-| series |
-+--------+
-|      1 |
-|      2 |
-[........]
-|      9 |
-|     10 |
-+--------+
-10 rows in set (0.00 sec)
+mysql> CALL generate_series(1, 10, 1);
 Query OK, 0 rows affected (0.00 sec)
 
 -- Insert all the rows from the series into the test table
-mysql> INSERT INTO test (a, b) SELECT series, 'This is a test' FROM series_tmp;
+mysql> INSERT INTO test (a, b) SELECT series, 'This is a test' FROM `series_tmp`;
 Query OK, 10 rows affected (0.00 sec)
 Records: 10  Duplicates: 0  Warnings: 0
 
@@ -246,6 +184,7 @@ As for inserts, MySQL does not allow using a stored procedure directly in a SELE
 We can again use mysql_generate_series's temporary table "series_tmp" to use the series with a JOIN in a SELECT query
 
 This example demonstrates how to display all hours from a date and their eventual associated row in another table:
+
 ```sql
 -- Create test table
 mysql> CREATE TABLE test2 (a datetime, b text);
@@ -258,17 +197,7 @@ Query OK, 2 rows affected (0.00 sec)
 Records: 2  Duplicates: 0  Warnings: 0
 
 -- Generate a series of each hour of the day
-mysql> CALL generate_series_date_hour('2015-09-03 00:00:00', '2015-09-03 23:00:00', 1);
-+---------------------+
-| series              |
-+---------------------+
-| 2015-09-03 00:00:00 |
-| 2015-09-03 01:00:00 |
-[.....................]
-| 2015-09-03 22:00:00 |
-| 2015-09-03 23:00:00 |
-+---------------------+
-24 rows in set (0.00 sec)
+mysql> CALL generate_series('2015-09-03 00:00:00', '2015-09-03 23:00:00', 'INTERVAL 1 HOUR');
 Query OK, 0 rows affected (0.00 sec)
 
 -- Select "test2" content
@@ -319,13 +248,14 @@ mysql> SELECT series_tmp.series, test2.a, test2.b
 
 ### Tips and tricks
 
- * All results from all methods are also stored in a temporary table called "series_tmp". You can use it for INSERTs, SELECTs... (to try it, call a method then execute "SELECT * FROM series_tmp")
- * Each method has an equivalent in a method ending with "_no_output". For example "generate_series(first, last)" can be "generate_series_no_output(first, last)". This sub-method does not generate any output which can be very useful for example in PHP where the result of a stored procedure can generate an error.
- * The temporary table used to store results ("series_tmp") can be removed immediately with "CALL generate_series_clean();". As a temporary table, it will be automatically dropped when the connection is closed anyway.
+ * The temporary table used to store results `series_tmp` is dropped and recreated on each call to gererate_series(). As a temporary table, it will only be available within the current session and to the current user. It will also automatically dropped when the connection is closed.
 
-### Author
+### Authors
 
 **Gabriel Bordeaux**
 
 + [Website](http://www.gab.lc/) 
 + [Twitter](https://twitter.com/gabrielbordeaux)
+
+**Paul Campbell**
++ [Website](http://www.animalcarpet.com/)
