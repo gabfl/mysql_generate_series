@@ -1,32 +1,38 @@
 # mysql_generate_series: generate_series for MySQL
 
-mysql_generate_series is a MySQL version of PostgreSQL's [generate_series](http://www.postgresql.org/docs/9.4/static/functions-srf.html) functions.
+mysql_generate_series is a MySQL version of PostgreSQL's [generate_series](http://www.postgresql.org/docs/current/static/functions-srf.html) functions.
 
-This version is (heavily) adapted from the original by Gabriel Bordeaux and seeks to simplify the method call and make the MySQL version parameters follow the PostgreSQL version insofar as that is possible. 
+This version is (heavily) adapted from the original and seeks to simplify the method call and make the MySQL version parameters follow the PostgreSQL version insofar as that is possible. 
 
-It offers a single method taking 3 parameters:
-* generate_series(start, stop, step): and delivers a series from "start" to "stop" incrementing by "step".
+It offers a single method `generate_series(start, stop, step)` to deliver a series from `start` to `stop` incrementing by `step`.
 
 Calling the method generates no output but instead creates a temporary table called `series_tmp` in the current database which can be used in joins and sub-queries in the current session.
  
-All parameters are INTEGER or strings which are representative of INTEGER, DATE, DATETIME and INTERVAL depending on the type of series being generated
+All parameters are `INTEGER` or strings which are representative of `INTEGER`, `DATE`, `DATETIME` and `INTERVAL` depending on the type of series being generated
 
-### INTEGER Series
-For integer ranges the three parameters are all INTEGER or string representations of numbers ("strumbers" if you prefer)
+## Installation
 
-either
+Install the methods from [sql/generate_series.sql](sql/generate_series.sql).
 
-* CALL generate_series(1, 20, 1);
-or
-* CALL generate_series('1', '20', '1');
+## INTEGER Series
+
+For integer ranges the three parameters are all INTEGER or string representations of numbers.
+
+### Usage
+
+```sql
+CALL generate_series(1, 20, 1);
+```
 
 Will create and populate `series_tmp` with INTEGER values from 1 to 20, incrementing by 1.
+
+### Example
 
 ```sql
 mysql> CALL generate_series( 1 , 10 , 1);
 Query OK, 0 rows affected (0.05 sec)
 
-mysql> describe series_tmp;
+mysql> DESC series_tmp;
 +--------+------------+------+-----+---------+-------+
 | Field  | Type       | Null | Key | Default | Extra |
 +--------+------------+------+-----+---------+-------+
@@ -52,18 +58,22 @@ mysql> SELECT * FROM `series_tmp`;
 10 rows in set (0.00 sec)
 ```
 
-### DATE Series
-For date ranges the "start" and "stop" parameters are string representations of dates and "step" represents the INTERVAL
+## DATE Series
 
-e.g.
+For date ranges the `start` and `stop` parameters are string representations of dates and `step` represents the `INTERVAL`.
 
-* CALL generate_series('2018-01-01','2018-12-31','INTERVAL 1 DAY');
+### Usage
 
+```sql
+CALL generate_series('2018-01-01','2018-12-31','INTERVAL 1 DAY');
+```
+
+### Example
 ```sql
 mysql> CALL generate_series('2018-01-01','2018-12-31','INTERVAL 1 MONTH');
 Query OK, 0 rows affected (0.08 sec)
 
-mysql> describe series_tmp;
+mysql> DESC series_tmp;
 +--------+------+------+-----+---------+-------+
 | Field  | Type | Null | Key | Default | Extra |
 +--------+------+------+-----+---------+-------+
@@ -92,18 +102,23 @@ mysql> SELECT * FROM `series_tmp`;
 ```
 
 
-### DATETIME Series
-For datetime ranges the "start" and "stop" parameters are datetimes and "step" represents the INTERVAL.
+## DATETIME Series
 
-e.g.
+For datetime ranges the `start` and `stop` parameters are datetimes and `step` represents the `INTERVAL`.
 
-* CALL generate_series('2018-01-01 00:00:00', '2018-01-01 23:59:59', 'INTERVAL 1 SECOND');
+### Usage
+
+```sql
+CALL generate_series('2018-01-01 00:00:00', '2018-01-01 23:59:59', 'INTERVAL 1 SECOND');
+```
+
+### Example
 
 ```sql
 mysql> CALL generate_series('2018-01-01 00:00:00', '2018-01-01 23:59:00', 'INTERVAL 1 MINUTE');
 Query OK, 0 rows affected (0.07 sec)
 
-mysql> describe series_tmp;
+mysql> DESC series_tmp;
 +--------+----------+------+-----+---------+-------+
 | Field  | Type     | Null | Key | Default | Extra |
 +--------+----------+------+-----+---------+-------+
@@ -133,26 +148,23 @@ mysql> SELECT * FROM `series_tmp`;
 1440 rows in set (0.00 sec)
 ```
 
-### INTERVALS
+## INTERVALS
+
 The following INTERVAL types are supported:
 
-* SECOND
-* MINUTE
-* HOUR
-* DAY
-* WEEK
-* MONTH
-* YEAR
+ - `SECOND`
+ - `MINUTE`
+ - `HOUR`
+ - `DAY`
+ - `WEEK`
+ - `MONTH`
+ - `YEAR`
 
-
-### Installation
-
-* Install the methods from [sql/generate_series.sql](sql/generate_series.sql)
-
+## Other examples
 
 ### Inserting in a table from a series
 
-MySQL does not support functions returning table so the procedure must be run before the data can be used from `series_tmp`.
+MySQL does not support functions returning tables so the procedure must be run before the data can be used from `series_tmp`.
 
 The following example shows how to insert multiple rows in MySQL tables easily:
 
@@ -258,11 +270,11 @@ mysql> SELECT series_tmp.series, test2.a, test2.b
 24 rows in set (0.00 sec)
 ```
 
-### Tips and tricks
+## Tips and tricks
 
- * The temporary table used to store results `series_tmp` is dropped and recreated on each call to generate_series(). As a temporary table, `series_tmp` will only be available within the current session and to the current user. It will also automatically dropped when the connection is closed.
+The temporary table used to store results `series_tmp` is dropped and recreated on each call to generate_series(). As a temporary table, `series_tmp` will only be available within the current session and to the current user. It will also automatically dropped when the connection is closed.
 
-### Authors
+## Authors
 
 **Gabriel Bordeaux**
 
